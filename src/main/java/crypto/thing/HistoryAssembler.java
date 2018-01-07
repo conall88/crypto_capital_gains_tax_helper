@@ -88,8 +88,8 @@ public class HistoryAssembler
 	private GdaxHelper gdaxHelper;
 	private PoloniexHelper poloniexHelper;
 	
-	private boolean includeSpecial = false; // do you have non-exchange things you need to include. Set this to true and add them below.
-	private boolean excludeSpecial = false; // do you have exchange-based transactions you need to exclude for whatever reason? Set this to true and add the exclusion logic below
+	private boolean includeSpecial = true; // do you have non-exchange things you need to include. Set this to true and add them below.
+	private boolean excludeSpecial = true; // do you have exchange-based transactions you need to exclude for whatever reason? Set this to true and add the exclusion logic below
 	
 	public HistoryAssembler()
 	{
@@ -120,8 +120,6 @@ public class HistoryAssembler
 		
 		DateFormat outDf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss a z"); 	// Set the timestamp format
 		outDf.setTimeZone(TimeZone.getTimeZone("America/New_York"));			// and time zone for the output file. If you prefer something else, change this.
-		
-		Pattern pattern = Pattern.compile(",");											// When reading the exchange files, we need to separate by "," and the syntax requires this pattern.								
 		
 		TreeSet<Commonentry> commonentries = new TreeSet<Commonentry>();				// We are going to assemble a unified Set of trade history of the type "Commonentry". These will auto-sort by date from oldest (top) to newest (bottom). 
 		
@@ -450,6 +448,7 @@ public class HistoryAssembler
 			entry.setFeeInUsd(0.0);
 			commonentries.add(entry);
 			
+			
 			// DAO/ETC hardfork
 			/*
 			 * There are a few ways to handle hard forks. 
@@ -528,6 +527,8 @@ public class HistoryAssembler
 		}
 		System.out.println("...done.");
 		
+		Pattern pattern = Pattern.compile(",");											// When reading the exchange files, we need to separate by "," and the syntax requires this pattern.
+
 		/***
 		 *     _____ _____ _____ _   _ ______  ___   _____ _____ 
 		 *    /  __ \  _  |_   _| \ | || ___ \/ _ \ /  ___|  ___| 
@@ -751,16 +752,16 @@ public class HistoryAssembler
 			{
 				// I helped someone else turn their ETC into ETH on Polo. Here I'm excluding these transactions.
 			}
-			else if((-.0000001 <= poloniexentry.getQuoteTotalLessFee() && poloniexentry.getQuoteTotalLessFee() <= .0000001) || 
-					(-.0000001 <= poloniexentry.getBaseTotalLessFee() && poloniexentry.getBaseTotalLessFee() <= .0000001))
+			else if((-.00001 <= poloniexentry.getQuoteTotalLessFee() && poloniexentry.getQuoteTotalLessFee() <= .00001) &&   // Polo does a weird thing with zero or near-zero trades which creates NaN doubles. So, 
+					(-.00001 <= poloniexentry.getBaseTotalLessFee() && poloniexentry.getBaseTotalLessFee() <= .00001))       // if both sides of a trade are almost zero, just exclude it. HIGHLY unlikely to do a trade where both share prices (on both sides) are so high that this would matter. 
 			{
 				if(poloniexentry.getType().toLowerCase().equals("sell"))
 				{
-					System.out.println("To or From amount is ALMOST zero. Skipping. (" + poloniexentry.getQuoteTotalLessFee() + " " + poloniexentry.getMarket().substring(0, poloniexentry.getMarket().indexOf("/")) + " to " + poloniexentry.getBaseTotalLessFee() + " " + poloniexentry.getMarket().substring(poloniexentry.getMarket().indexOf("/")+1) + ")");
+					System.out.println("POLO To or From amount is ALMOST zero. Skipping. (" + poloniexentry.getQuoteTotalLessFee() + " " + poloniexentry.getMarket().substring(0, poloniexentry.getMarket().indexOf("/")) + " to " + poloniexentry.getBaseTotalLessFee() + " " + poloniexentry.getMarket().substring(poloniexentry.getMarket().indexOf("/")+1) + ")");
 				}
 				else
 				{
-					System.out.println("To or From amount is ALMOST zero. Skipping. (" + poloniexentry.getBaseTotalLessFee() + " " + poloniexentry.getMarket().substring(poloniexentry.getMarket().indexOf("/")+1) + " to " + poloniexentry.getQuoteTotalLessFee() + " " + poloniexentry.getMarket().substring(0, poloniexentry.getMarket().indexOf("/")) + ")");
+					System.out.println("POLO To or From amount is ALMOST zero. Skipping. (" + poloniexentry.getBaseTotalLessFee() + " " + poloniexentry.getMarket().substring(poloniexentry.getMarket().indexOf("/")+1) + " to " + poloniexentry.getQuoteTotalLessFee() + " " + poloniexentry.getMarket().substring(0, poloniexentry.getMarket().indexOf("/")) + ")");
 				}
 			}
 			else
@@ -1227,7 +1228,7 @@ public class HistoryAssembler
 				if((-.0000001 <= getDoubleFromString(geminientry.getEthAmount()) && getDoubleFromString(geminientry.getEthAmount()) <= .0000001) || 
 						(-.0000001 <= getDoubleFromString(geminientry.getUsdAmount()) && getDoubleFromString(geminientry.getUsdAmount()) <= .0000001))
 				{
-					System.out.println("To or From amount is ALMOST zero. Skipping. (" + getDoubleFromString(geminientry.getUsdAmount()) + " USD to " + getDoubleFromString(geminientry.getEthAmount()) + " ETH)");
+					System.out.println("GEMINI To or From amount is ALMOST zero. Skipping. (" + getDoubleFromString(geminientry.getUsdAmount()) + " USD to " + getDoubleFromString(geminientry.getEthAmount()) + " ETH)");
 				}
 				else
 				{	
