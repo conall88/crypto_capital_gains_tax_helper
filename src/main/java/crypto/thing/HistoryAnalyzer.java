@@ -78,7 +78,6 @@ public class HistoryAnalyzer
 				{
 					chunkQueue0 = chunksMap.get(toUnits);
 					chunkQueue0.add(chunk);
-					
 				}
 				else
 				{
