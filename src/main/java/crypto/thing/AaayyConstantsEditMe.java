@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class AaayyConstantsEditMe {
 	
-	
 	/*
 	 HistoryAssembler will query external data sources for price information. 
 	 The first time around, it takes a long time, but thanks to these two files, each lookup only has to be done once.

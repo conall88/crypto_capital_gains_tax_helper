@@ -102,8 +102,8 @@ public class HistoryAssembler
 	private GdaxHelper gdaxHelper;
 	private PoloniexHelper poloniexHelper;
 	
-	private boolean includeSpecial = true; // do you have non-exchange things you need to include. Set this to true and add them below.
-	private boolean excludeSpecial = true; // do you have exchange-based transactions you need to exclude for whatever reason? Set this to true and add the exclusion logic below
+	private boolean includeSpecial = false; // do you have non-exchange things you need to include. Set this to true and add them below.
+	private boolean excludeSpecial = false; // do you have exchange-based transactions you need to exclude for whatever reason? Set this to true and add the exclusion logic below
 	
 	public HistoryAssembler()
 	{
