@@ -32,7 +32,7 @@ public class HistoryAnalyzer
 
 	public void process() throws ClientProtocolException, IOException
 	{
-		String content = new String(Files.readAllBytes(Paths.get("/home/cyrus/Desktop/taxes/unifiedHistory.json")));
+		String content = new String(Files.readAllBytes(Paths.get(AaayyConstantsEditMe.UNIFIED_HISTORY_LOCATION)));
 		ObjectMapper mapper = new ObjectMapper();
 		Set<Commonentry> commonentries = mapper.readValue(content, new TypeReference<TreeSet<Commonentry>>(){});
 		

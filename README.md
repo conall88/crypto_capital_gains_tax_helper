@@ -1,31 +1,36 @@
 (MIT License info at bottom)
 
-## WHAT IS THIS?
+## WHAT IS CRYPTO_CAPITAL_GAINS_TAX_HELPER?
 
-This (Java/Maven) repo contains a couple of executable Java classes (scripts, really) that are designed to assist in the preparation of US taxes for people who have sold crypto assests.
+This (Java/Maven) repo contains a couple of executable Java classes (scripts, really) that are designed to assist in the preparation of US taxes for people who have sold crypto assests by parsing, unifiying and analyzing exported exchange files.
 
-### DISCLAIMER 1 (Beta software)
+### DISCLAIMERS
 
 **This is extremely new software and does a lot of file/string parsing which may not work &quot;out of the box&quot;.**  **BE PREPARED FOR FRUSTRATION.**  **More importantly,**  **be prepared to communicate.**  **Talk to us via Github to describe the issues you experience and we will try to iron out the wrinkles in all these different file formats. Include as much information as possible.**
 
-### DISCLAIMER 2 (Legal)
-
 **Nothing in this repo should be considered legal advice. I&#39;m not an attorney and a real attorney may have entirely different ideas of how things work.**
 
-While we&#39;re at it, I make no guarantees or assertions of fitness for this software at all. Use at your own risk.
+**I make no guarantees or assertions of fitness for this software at all. Use at your own risk.**
 
-### DISCLAIMER 3 (Code verbosity)
+note: The code is purposefully verbose and kept into just a few files and functions for readability and editability. It is meant to read like a top-to-bottom script execution.
 
-The code is verbose and kept into just a few files and functions on purpose for readability and editiability. It is meant to read like a top-to-bottom script execution.
+### SUPPORTED EXCHANGES
+
+- COINBASE
+- GDAX
+- GEMINI
+- POLONIEX
+
+Small numbers of transactions from other exchanges, on-chain activities (ICOs, etc), or miscellaneous (in-person buys and sell, etc) can be included manually. 
+
+Suggest other exchanges via Github at https://github.com/fivedogit/crypto_capital_gains_tax_helper/issues . Include example file formats.
 
 ### ASSUMPTIONS
 
-The above notwithstanding, I made a few assumptions when writing these programs:
+The above disclaimers notwithstanding, I had to make a few legal(-ish) assumptions when writing these scripts:
 
-- Assets held for more than a year fall under Long Term Capital Gains (LTCG).
-- Assets held for less than a year fall under Short Term Capital Gains (STCG).
-- Crypto-to-crypto exchanges (e.g. BTC to ETH) are taxable events and &quot;reset the clock&quot; for determination of long vs short.
-- Moving a particular crypto from one exchange to another is not a taxable event.
+- ST vs LT - Assets held for more than a year fall under Long Term Capital Gains (LTCG). Assets held for less than a year fall under Short Term Capital Gains (STCG).
+- Taxable events - Crypto-to-crypto exchanges (e.g. BTC to ETH) are taxable events and &quot;reset the clock&quot; for determination of long vs short. Moving a particular crypto from one exchange to another or to/from wallets does not trigger a taxable event.
 - FIFO - Your earliest acquisition of a particular crypto is used first when you sell (or trade) any of that crypto.
 - Income - If you were paid in crypto (mining, dApp income, simple payment for a job, etc), then you have to pay taxes on that as income elsewhere. It shows up in this list once you have it and its cost basis is its price at that time. (Note these have to be entered manually.)
 
@@ -34,18 +39,17 @@ The above notwithstanding, I made a few assumptions when writing these programs:
 This repo comes with two executable Java classes:
 
 1. HistoryAssembler - Assembles all of your transactions (from various exchanges, and manual entries) into a single JSON file, complete with the BTC and USD values as pulled from GDAX and Poloniex APIs. (no auth needed)
-2. HistoryAnalyzer - Reads the history.json file and generates a CSV file of all your sell events, complete with the cost basis of each sale and its ST/LT determination (among other things).
+2. HistoryAnalyzer - Reads the JSON file and generates a CSV file of all your sell events, complete with the cost basis of each sale and its ST/LT determination (among other things).
 
-### BEST FIT SCENARIO
+### IS CRYPTO_CAPITAL_GAINS_TAX_HELPER RIGHT FOR YOU? 
 
 - You are American (US) or USD works for you and ST/LT rules are similar.
 - You used Coinbase, GDAX, Poloniex and Gemini only. (Suggest others via Github, please.)
 - Your Poloniex trades have either ETH or BTC on one side. (XMR not yet supported.)
 - You did minimal on-chain transactions such as ICOs\*
 - You had minimal non-exchange crypto events like getting paid in crypto, earning via Dapp, buying/selling in-person, etc\*
-- You didn&#39;t buy/sell on exchanges on others&#39; behalf\*
 
-\*A few is fine as you can add/exclude these manually.
+\*A few is fine as you can include these manually.
 
 ### HOW TO USE
 

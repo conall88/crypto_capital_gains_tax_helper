@@ -1,3 +1,15 @@
+/* 
+ * Copyright 2018 Cyrus Adkisson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package crypto.thing;
 
 /***
@@ -74,6 +86,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
+// see README.md for background on what this repository and program are and how to use them.
 
 public class HistoryAssembler 
 {
@@ -1365,7 +1379,7 @@ public class HistoryAssembler
 		System.out.print("Saving btcPerEth ticks to " + AaayyConstantsEditMe.KNOWN_BTC_PER_ETH_TICKS_LOCATION);
 		try {
 			mapper.enable(SerializationFeature.INDENT_OUTPUT);
-			mapper.writeValue(new File("/home/cyrus/Desktop/taxes/knownBtcPerEthTicks.json"), knownBtcPerEthTicks);
+			mapper.writeValue(new File(AaayyConstantsEditMe.KNOWN_BTC_PER_ETH_TICKS_LOCATION), knownBtcPerEthTicks);
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
