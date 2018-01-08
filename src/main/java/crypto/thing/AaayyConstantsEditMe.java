@@ -40,9 +40,10 @@ public class AaayyConstantsEditMe {
 	public static String GEMINI_LOCATION = "/home/cyrus/Desktop/taxes/Gemini.csv";					// Gemini provides an xlsx file which you'll need to load in in a spreadsheet app and export to CSV. ETH and BTC are combined.  (I think. I didn't use BTC.)
 	
 	/*
-	 Where to put the unified set of transactions.
+	 Where to put the unified set of transactions and then the final sales analysis.
 	 */
 	public static String UNIFIED_HISTORY_LOCATION = "/home/cyrus/Desktop/taxes/unifiedHistory.json";
+	public static String SALES_ANALYSIS_CSV_LOCATION = "/home/cyrus/Desktop/taxes/salesAnalysis.csv";
 	
 	/*
 	 The symbols for GDAX and Coinbase. You can leave these alone, even if you didn't have trades of certain types. 

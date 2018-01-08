@@ -1,8 +1,12 @@
 package crypto.thing;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.TreeSet;
@@ -33,6 +37,12 @@ public class HistoryAnalyzer
 	public void process() throws ClientProtocolException, IOException
 	{
 		String content = new String(Files.readAllBytes(Paths.get(AaayyConstantsEditMe.UNIFIED_HISTORY_LOCATION)));
+		
+		BufferedWriter writer = new BufferedWriter(new FileWriter(AaayyConstantsEditMe.SALES_ANALYSIS_CSV_LOCATION,false)); // false = do not append.
+	    writer.write(""); // blank out the existing output file.
+	    writer.close();
+	    writer = new BufferedWriter(new FileWriter(AaayyConstantsEditMe.SALES_ANALYSIS_CSV_LOCATION, true)); // true = append
+		
 		ObjectMapper mapper = new ObjectMapper();
 		Set<Commonentry> commonentries = mapper.readValue(content, new TypeReference<TreeSet<Commonentry>>(){});
 		
@@ -137,168 +147,182 @@ public class HistoryAnalyzer
 //					System.out.println(commonentry.getTimestampHr() + " SALE:\t" + commonentry.getFromAmount() + " " + commonentry.getFromUnits() + "\tts=" + commonentry.getTimestamp() + "\tval=" + (commonentry.getUsdTotal()/commonentry.getFromAmount()));
 					Queue<Chunk> chunkQueue1 = chunksMap.get(commonentry.getFromUnits());
 					
-					Iterator<Chunk> chunks_it1;
-					chunks_it1 = chunkQueue1.iterator();
-					pollTheChunk = false;
-					if(chunks_it1.hasNext())
+					if(chunkQueue1 == null) // note: empty is fine. Means all buys accounted for.
 					{
-						chunk = chunks_it1.next();
-						if(chunk.getUnits().equals(commonentry.getFromUnits()))
-						{	
-							valchange = (commonentry.getUsdTotal()/commonentry.getFromAmount()) - chunk.getCostBasisPerUnit();
-							timegap = (commonentry.getTimestamp() - chunk.getTimestamp());
-							timegapInDays = (timegap / 1000 / 60 / 60 / 24);
-							if (timegap >= 31540000000L)
-								longOrShort = "LONG TERM";
-							else
-								longOrShort = "SHORT TERM";
-							
-							difference = chunk.getQuantity() - commonentry.getFromAmount();
-							if (difference < .0001 && difference > -.0001)
-							{
-								if(valchange < 0)
-									gainLoss = "LOSS";
-								else
-									gainLoss = "GAIN";
-								gainLossAmount = valchange*commonentry.getFromAmount();
-								sufficiency = "EXACT";
-								pollTheChunk = true; // the early buy has been used up.
-							}
-							else if (difference > 0)
-							{
-								if(valchange < 0)
-									gainLoss = "LOSS";
-								else
-									gainLoss = "GAIN";
-								gainLossAmount = valchange*commonentry.getFromAmount();
-								sufficiency = "SUFFICIENT";
-								// don't poll the chunk it has some left.
-							}
-							else
-							{
-								if(valchange < 0)
-									gainLoss = "LOSS";
-								else
-									gainLoss = "GAIN";
-								gainLossAmount = valchange*chunk.getQuantity();
-								sufficiency = "INSUFFICIENT";
-								
-								pollTheChunk = true; // the early buy has been used up.
-								
-								// the current sell was not entirely accounted for. Keep it for next iteration. (note, it will be reduced below after printing the first half of the line.
-								stayOnCurrentSell = true;
-							}
-						}
-					}
-					
-					System.out.print(formatter.format(formatterString,
-							commonentry.getTimestampHr(), 
-							commonentry.getFromAmount(),   		
-							commonentry.getFromUnits(), 
-							commonentry.getToAmount(),  
-							commonentry.getToUnits(), 
-							commonentry.getUsdTotal()/commonentry.getFromAmount(), 
-							sufficiency, 
-							chunk.getQuantity(),
-							chunk.getUnits(),
-							chunk.getCostBasisPerUnit(),
-							timegapInDays,
-							longOrShort,
-							gainLoss,
-							gainLossAmount,
-							commonentry.getExchangeName()
-							)); 
-					sb.setLength(0);
-					
-					// change quantities
-					
-					if(pollTheChunk)
-						chunkQueue1.poll(); // it was used up
-					else
-						chunk.setQuantity(chunk.getQuantity() - commonentry.getFromAmount()); // there is still some left
-					
-					if(stayOnCurrentSell)
-					{
-						double remainderNative = commonentry.getFromAmount() - chunk.getQuantity();
-						double percentLeft = (commonentry.getFromAmount() - chunk.getQuantity())/commonentry.getFromAmount();
-						commonentry.setBtcAmount(commonentry.getBtcAmount() * percentLeft);
-						commonentry.setUsdTotal(commonentry.getUsdTotal() * percentLeft);
-						commonentry.setFromAmount(remainderNative);
-						commonentry.setToAmount(commonentry.getToAmount() * percentLeft);
-					}
-					
-					// now loop through the remaining chunks and calculate LT and ST totals for each coin we're tracking.
-					chunks_it1 = chunkQueue1.iterator(); // this is only the chunks of the same type as the sale.
-					stRunningTotal = 0;
-					ltRunningTotal = 0;
-					while(chunks_it1.hasNext())
-					{
-						chunkForTermCalculation = chunks_it1.next();
-								
-						if(chunkForTermCalculation.getTimestamp() < commonentry.getTimestamp()) 						// we only care about the chunks (still remaining) acquired before this sale. If there are none, we shouldn't be in this loop.
-						{	
-							if((commonentry.getTimestamp() - chunkForTermCalculation.getTimestamp()) >= 31540000000L)	// this chunk (still remaining), acquired before this sale is more than a year old.
-							{
-								ltRunningTotal = ltRunningTotal + chunkForTermCalculation.getQuantity();
-							}
-							else 																						// this chunk (still remaining), acquired before this sale is less than a year old.
-							{
-								stRunningTotal = stRunningTotal + chunkForTermCalculation.getQuantity();
-							}
-						}
-					}
-					
-					// Maybe make zero if very close here?
-					
-					totalsMap.put(commonentry.getFromUnits() + " ST", stRunningTotal);
-					totalsMap.put(commonentry.getFromUnits() + " LT",  ltRunningTotal);
-					totalsMap.put(commonentry.getFromUnits() + " TOTAL",  ltRunningTotal + stRunningTotal);
-					
-					// now that we've calculated the ST/LT running totals for each coin, print them on the same line.
-					
-					Iterator<String> totalsKeys_it = totalsMap.keySet().iterator();
-					String currentTotalKey = "";
-					while(totalsKeys_it.hasNext())
-					{
-						currentTotalKey = totalsKeys_it.next();
-						System.out.print(formatter.format("%1$18.8f,%2$4s,",
-								totalsMap.get(currentTotalKey), 
-								currentTotalKey));
-						sb.setLength(0);
-					}
-					System.out.println();
-					
-					if(commonentry.getTimestamp() < oneone2009)
-					{
-						// before 2009, uh... before the BTC genesis block?
+						System.err.println("While analyzing the history, we found a sale of a symbol (" + commonentry.getFromUnits() + ") not found in the buy history. Please account for this sale in the HistoryAssembler and retry. Cannot continue.");
+						System.exit(1);
 					}
 					else
-					{
-						yearCounter = 0;
-						Double currentDouble = new Double(0);
-						while(yearCounter < yearLimit)
+					{	
+						Iterator<Chunk> chunks_it1;
+						chunks_it1 = chunkQueue1.iterator();
+						pollTheChunk = false;
+						if(chunks_it1.hasNext())
 						{
-							if(((yearCounter * aYearInMillis) + oneone2009) < commonentry.getTimestamp() && commonentry.getTimestamp() < (((yearCounter+1) * aYearInMillis) + oneone2009))
-							{
-								if(longOrShort.toLowerCase().startsWith("short"))
+							chunk = chunks_it1.next();
+							if(chunk.getUnits().equals(commonentry.getFromUnits()))
+							{	
+								valchange = (commonentry.getUsdTotal()/commonentry.getFromAmount()) - chunk.getCostBasisPerUnit();
+								timegap = (commonentry.getTimestamp() - chunk.getTimestamp());
+								timegapInDays = (timegap / 1000 / 60 / 60 / 24);
+								if (timegap >= 31540000000L)
+									longOrShort = "LONG TERM";
+								else
+									longOrShort = "SHORT TERM";
+								
+								difference = chunk.getQuantity() - commonentry.getFromAmount();
+								if (difference < .0001 && difference > -.0001)
 								{
-									currentDouble = yearlyTotalsMap.get((2009 + yearCounter) + "shortTerm");
-									if(currentDouble == null)
-										currentDouble = new Double(0);
-									yearlyTotalsMap.put((2009 + yearCounter) + "shortTerm", currentDouble + gainLossAmount);
+									if(valchange < 0)
+										gainLoss = "LOSS";
+									else
+										gainLoss = "GAIN";
+									gainLossAmount = valchange*commonentry.getFromAmount();
+									sufficiency = "EXACT";
+									pollTheChunk = true; // the early buy has been used up.
+								}
+								else if (difference > 0)
+								{
+									if(valchange < 0)
+										gainLoss = "LOSS";
+									else
+										gainLoss = "GAIN";
+									gainLossAmount = valchange*commonentry.getFromAmount();
+									sufficiency = "SUFFICIENT";
+									// don't poll the chunk it has some left.
 								}
 								else
 								{
-									currentDouble = yearlyTotalsMap.get((2009 + yearCounter) + "longTerm");
-									if(currentDouble == null)
-										currentDouble = new Double(0);
-									yearlyTotalsMap.put((2009 + yearCounter) + "longTerm", currentDouble + gainLossAmount);
+									if(valchange < 0)
+										gainLoss = "LOSS";
+									else
+										gainLoss = "GAIN";
+									gainLossAmount = valchange*chunk.getQuantity();
+									sufficiency = "INSUFFICIENT";
+									
+									pollTheChunk = true; // the early buy has been used up.
+									
+									// the current sell was not entirely accounted for. Keep it for next iteration. (note, it will be reduced below after printing the first half of the line.
+									stayOnCurrentSell = true;
 								}
 							}
-							yearCounter++;
+						}
+						
+						String outputString = formatter.format(formatterString,
+								commonentry.getTimestampHr(), 
+								commonentry.getFromAmount(),   		
+								commonentry.getFromUnits(), 
+								commonentry.getToAmount(),  
+								commonentry.getToUnits(), 
+								commonentry.getUsdTotal()/commonentry.getFromAmount(), 
+								sufficiency, 
+								chunk.getQuantity(),
+								chunk.getUnits(),
+								chunk.getCostBasisPerUnit(),
+								timegapInDays,
+								longOrShort,
+								gainLoss,
+								gainLossAmount,
+								commonentry.getExchangeName()
+								).toString();
+						System.out.print(outputString); 
+						writer.append(outputString);
+//						Files.write(Paths.get(AaayyConstantsEditMe.SALES_ANALYSIS_CSV_LOCATION), outputString.getBytes());
+						sb.setLength(0);
+						
+						// change quantities
+						
+						if(pollTheChunk)
+							chunkQueue1.poll(); // it was used up
+						else
+							chunk.setQuantity(chunk.getQuantity() - commonentry.getFromAmount()); // there is still some left
+						
+						if(stayOnCurrentSell)
+						{
+							double remainderNative = commonentry.getFromAmount() - chunk.getQuantity();
+							double percentLeft = (commonentry.getFromAmount() - chunk.getQuantity())/commonentry.getFromAmount();
+							commonentry.setBtcAmount(commonentry.getBtcAmount() * percentLeft);
+							commonentry.setUsdTotal(commonentry.getUsdTotal() * percentLeft);
+							commonentry.setFromAmount(remainderNative);
+							commonentry.setToAmount(commonentry.getToAmount() * percentLeft);
+						}
+						
+						// now loop through the remaining chunks and calculate LT and ST totals for each coin we're tracking.
+						chunks_it1 = chunkQueue1.iterator(); // this is only the chunks of the same type as the sale.
+						stRunningTotal = 0;
+						ltRunningTotal = 0;
+						while(chunks_it1.hasNext())
+						{
+							chunkForTermCalculation = chunks_it1.next();
+									
+							if(chunkForTermCalculation.getTimestamp() < commonentry.getTimestamp()) 						// we only care about the chunks (still remaining) acquired before this sale. If there are none, we shouldn't be in this loop.
+							{	
+								if((commonentry.getTimestamp() - chunkForTermCalculation.getTimestamp()) >= 31540000000L)	// this chunk (still remaining), acquired before this sale is more than a year old.
+								{
+									ltRunningTotal = ltRunningTotal + chunkForTermCalculation.getQuantity();
+								}
+								else 																						// this chunk (still remaining), acquired before this sale is less than a year old.
+								{
+									stRunningTotal = stRunningTotal + chunkForTermCalculation.getQuantity();
+								}
+							}
+						}
+						
+						// Maybe make zero if very close here?
+						
+						totalsMap.put(commonentry.getFromUnits() + " ST", stRunningTotal);
+						totalsMap.put(commonentry.getFromUnits() + " LT",  ltRunningTotal);
+						totalsMap.put(commonentry.getFromUnits() + " TOTAL",  ltRunningTotal + stRunningTotal);
+						
+						// now that we've calculated the ST/LT running totals for each coin, print them on the same line.
+						
+						Iterator<String> totalsKeys_it = totalsMap.keySet().iterator();
+						String currentTotalKey = "";
+						while(totalsKeys_it.hasNext())
+						{
+							currentTotalKey = totalsKeys_it.next();
+							
+							outputString = formatter.format("%1$18.8f,%2$4s,",
+									totalsMap.get(currentTotalKey), 
+									currentTotalKey).toString();
+							System.out.print(outputString); 
+							writer.append(outputString);
+							sb.setLength(0);
+						}
+						System.out.println(); 
+						writer.append(System.lineSeparator());
+						
+						if(commonentry.getTimestamp() < oneone2009)
+						{
+							// before 2009, uh... before the BTC genesis block?
+						}
+						else
+						{
+							yearCounter = 0;
+							Double currentDouble = new Double(0);
+							while(yearCounter < yearLimit)
+							{
+								if(((yearCounter * aYearInMillis) + oneone2009) < commonentry.getTimestamp() && commonentry.getTimestamp() < (((yearCounter+1) * aYearInMillis) + oneone2009))
+								{
+									if(longOrShort.toLowerCase().startsWith("short"))
+									{
+										currentDouble = yearlyTotalsMap.get((2009 + yearCounter) + "shortTerm");
+										if(currentDouble == null)
+											currentDouble = new Double(0);
+										yearlyTotalsMap.put((2009 + yearCounter) + "shortTerm", currentDouble + gainLossAmount);
+									}
+									else
+									{
+										currentDouble = yearlyTotalsMap.get((2009 + yearCounter) + "longTerm");
+										if(currentDouble == null)
+											currentDouble = new Double(0);
+										yearlyTotalsMap.put((2009 + yearCounter) + "longTerm", currentDouble + gainLossAmount);
+									}
+								}
+								yearCounter++;
+							}
 						}
 					}
-					
 				}
 			count++;
 		}
@@ -308,6 +332,7 @@ public class HistoryAnalyzer
 		}
 		
 		formatter.close();
+		writer.close();
 	}
 	
     public static void main( String[] args )
