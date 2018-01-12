@@ -713,6 +713,20 @@ public class HistoryAssembler
 				e.printStackTrace();
 			}
 			System.out.println("...done.");
+			
+			System.out.print("Saving usdPerBtc ticks to " + AaayyConstantsEditMe.KNOWN_USD_PER_BTC_TICKS_LOCATION);
+			try {
+				mapper.enable(SerializationFeature.INDENT_OUTPUT);
+				mapper.writeValue(new File(AaayyConstantsEditMe.KNOWN_USD_PER_BTC_TICKS_LOCATION), knownUsdPerBtcTicks);
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println("...done.");
+			
 			symbolIndex++;
 		}
 		
@@ -1028,6 +1042,32 @@ public class HistoryAssembler
 		}
 		System.out.println("...done.");
 		
+		System.out.print("Saving usdPerBtc ticks to " + AaayyConstantsEditMe.KNOWN_USD_PER_BTC_TICKS_LOCATION);
+		try {
+			mapper.enable(SerializationFeature.INDENT_OUTPUT);
+			mapper.writeValue(new File(AaayyConstantsEditMe.KNOWN_USD_PER_BTC_TICKS_LOCATION), knownUsdPerBtcTicks);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("...done.");
+		
+		System.out.print("Saving btcPerEth ticks to " + AaayyConstantsEditMe.KNOWN_BTC_PER_ETH_TICKS_LOCATION);
+		try {
+			mapper.enable(SerializationFeature.INDENT_OUTPUT);
+			mapper.writeValue(new File(AaayyConstantsEditMe.KNOWN_BTC_PER_ETH_TICKS_LOCATION), knownBtcPerEthTicks);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("...done.");
+		
 		/***
 		 *     ___________  ___  __   __ 
 		 *    |  __ \  _  \/ _ \ \ \ / / 
@@ -1189,6 +1229,20 @@ public class HistoryAssembler
 				e.printStackTrace();
 			}
 			System.out.println("...done.");
+			
+			System.out.print("Saving usdPerBtc ticks to " + AaayyConstantsEditMe.KNOWN_USD_PER_BTC_TICKS_LOCATION);
+			try {
+				mapper.enable(SerializationFeature.INDENT_OUTPUT);
+				mapper.writeValue(new File(AaayyConstantsEditMe.KNOWN_USD_PER_BTC_TICKS_LOCATION), knownUsdPerBtcTicks);
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println("...done.");
+			
 			symbolIndex++;
 		}
 		
