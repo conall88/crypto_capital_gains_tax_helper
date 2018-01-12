@@ -403,7 +403,7 @@ public class HistoryAssembler
 			entry.setIncome(true); 
 			commonentries.add(entry);
 			
-			// 2016/12/16   sold to ashley at work // -10.76716 (eth price was 7.43, received $80) // https://api.gdax.com/products/BTC-USD/candles?start=2016-12-16T03:01:00-04:00&end=2016-12-16T03:02:00-04:00  [[1481871660,780.51,780.86,780.51,780.86,0.11]]
+			// 2016/12/16   sold to someone at work // -10.76716 (eth price was 7.43, received $80) // https://api.gdax.com/products/BTC-USD/candles?start=2016-12-16T03:01:00-04:00&end=2016-12-16T03:02:00-04:00  [[1481871660,780.51,780.86,780.51,780.86,0.11]]
 			// 							
 			entry = new Commonentry();
 			entry.setTimestamp(1445918400000L);
